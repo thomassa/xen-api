@@ -70,6 +70,11 @@ val assert_not_ha_protected : __context:Context.t -> vm:[ `VM ] Ref.t -> unit
 val pause : __context:Context.t -> vm:API.ref_VM -> unit
 val unpause : __context:Context.t -> vm:API.ref_VM -> unit
 val set_xenstore_data : __context:Context.t -> self:API.ref_VM -> value:(string * string) list -> unit
+val set_client_to_guest : __context:Context.t -> self:API.ref_VM -> value:(string * string) list -> unit
+val set_guest_to_client : __context:Context.t -> self:API.ref_VM -> value:(string * string) list -> unit
+val add_to_client_to_guest: __context:Context.t -> self:[ `VM ] API.Ref.t -> key:string -> value:string -> unit
+val remove_from_client_to_guest: __context:Context.t -> self:[ `VM ] API.Ref.t -> key:string -> unit
+
 val start :
   __context:Context.t ->
   vm:API.ref_VM -> start_paused:bool -> force:'a -> unit
@@ -140,8 +145,10 @@ val create :
   suspend_SR:[ `SR ] Ref.t ->
   version:int64 ->
   generation_id:string ->
-  hardware_platform_version:int64
--> API.ref_VM
+  hardware_platform_version:int64 ->
+  client_to_guest:(string * string) list ->
+(*guest_to_client:(string * string) list ->*)
+  API.ref_VM
 val destroy : __context:Context.t -> self:[ `VM ] Ref.t -> unit
 val clone :
   __context:Context.t -> vm:API.ref_VM -> new_name:string -> [ `VM ] Ref.t

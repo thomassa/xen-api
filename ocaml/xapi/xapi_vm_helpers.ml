@@ -92,6 +92,7 @@ let create ~__context ~name_label ~name_description
 		~hVM_boot_policy ~hVM_boot_params ~hVM_shadow_multiplier
 		~platform
 		~pCI_bus ~other_config ~xenstore_data ~recommendations
+		~client_to_guest ~guest_to_client
 		~ha_always_run ~ha_restart_priority ~tags
 		~blocked_operations ~protection_policy
 		~is_snapshot_from_vmpp
@@ -156,6 +157,7 @@ let create ~__context ~name_label ~name_description
 		~is_control_domain:false
 		~metrics ~guest_metrics:Ref.null
 		~last_booted_record:"" ~xenstore_data ~recommendations
+		~client_to_guest ~guest_to_client
 		~blobs:[]
 		~ha_restart_priority
 		~ha_always_run ~tags

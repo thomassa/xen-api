@@ -204,6 +204,7 @@ and create_domain_zero_record ~__context ~domain_zero_ref (host_info: host_info)
 		~snapshot_info:[] ~snapshot_metadata:""
 		~parent:Ref.null
 		~other_config:[] ~blobs:[] ~xenstore_data:[] ~tags:[] ~user_version:1L
+		~client_to_guest:[] ~guest_to_client:[]
 		~ha_restart_priority:"" ~ha_always_run:false ~recommendations:""
 		~last_boot_CPU_flags:[] ~last_booted_record:""
 		~guest_metrics:Ref.null ~metrics

@@ -787,6 +787,8 @@ module MD = struct
 			name = vm.API.vM_name_label;
 			ssidref = 0l;
 			xsdata = vm.API.vM_xenstore_data;
+			client_to_guest = vm.API.vM_client_to_guest;
+			guest_to_client = vm.API.vM_guest_to_client;
 			platformdata = platformdata;
 			bios_strings = vm.API.vM_bios_strings;
 			ty = builder_of_vm ~__context (vmref, vm) timeoffset pci_passthrough vgpu;
@@ -1469,13 +1471,19 @@ let update_vm ~__context id =
 									end;
 									if different (fun x -> x.guest_agent) then check_guest_agent ();
 
-									if different (fun x -> x.xsdata_state) then begin
-										try
-											debug "xenopsd event: Updating VM %s domid %d xsdata" id domid;
-											Db.VM.set_xenstore_data ~__context ~self ~value:state.xsdata_state
-										with e ->
-											error "Caught %s: while updating VM %s xsdata" (Printexc.to_string e) id
-									end;
+									List.iter (fun (get_state, name, db_setter) ->
+										if different get_state then begin
+											try
+												debug "xenopsd event: Updating VM %s domid %d %s" id domid name;
+												db_setter ~__context ~self ~value:(get_state state)
+											with e ->
+												error "Caught %s: while updating VM %s %s" (Printexc.to_string e) id name
+										end
+									) [
+										((fun x -> x.xsdata_state), "xsdata", Db.VM.set_xenstore_data);
+										((fun x -> x.guest_to_client_state), "guest_to_client", Db.VM.set_guest_to_client);
+									];
+
 									if different (fun x -> x.memory_target) then begin
 										try
 											debug "xenopsd event: Updating VM %s domid %d memory target" id domid;
@@ -2245,17 +2253,31 @@ let run_script ~__context ~self script =
 			r
 		)
 
-let set_xenstore_data ~__context ~self xsdata =
+let set_generic_xenstore_data ~__context ~self setter xsdata =
 	let queue_name = queue_of_vm ~__context ~self in
 	transform_xenops_exn ~__context ~vm:self queue_name
 		(fun () ->
 			let id = id_of_vm ~__context ~self in
-			debug "xenops: VM.set_xenstore_data %s" id;
+			debug "xenops: VM.set_generic_xenstore_data %s" id;
 			let dbg = Context.string_of_task __context in
-			let module Client = (val make_client queue_name : XENOPS) in
-			Client.VM.set_xsdata dbg id xsdata |> sync_with_task __context queue_name;
+			setter dbg id xsdata |> sync_with_task __context queue_name;
 			Events_from_xenopsd.wait queue_name dbg id ();
 		)
+
+let set_xenstore_data ~__context ~self xsdata =
+	let queue_name = queue_of_vm ~__context ~self in
+	let module Client = (val make_client queue_name : XENOPS) in
+	set_generic_xenstore_data ~__context ~self Client.VM.set_xsdata xsdata
+
+let set_client_to_guest ~__context ~self xsdata =
+	let queue_name = queue_of_vm ~__context ~self in
+	let module Client = (val make_client queue_name : XENOPS) in
+	set_generic_xenstore_data ~__context ~self Client.VM.set_client_to_guest xsdata
+
+let set_guest_to_client ~__context ~self xsdata =
+	let queue_name = queue_of_vm ~__context ~self in
+	let module Client = (val make_client queue_name : XENOPS) in
+	set_generic_xenstore_data ~__context ~self Client.VM.set_guest_to_client xsdata
 
 let set_vcpus ~__context ~self n =
 	let queue_name = queue_of_vm ~__context ~self in

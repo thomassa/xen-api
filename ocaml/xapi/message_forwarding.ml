@@ -1231,14 +1231,48 @@ module Forward = functor(Local: Custom_actions.CUSTOM_ACTIONS) -> struct
 			info "VM.assert_can_set_auto_update_drivers: VM = '%s' to %b " (vm_uuid ~__context self) value;
 			Local.VM.assert_can_set_auto_update_drivers ~__context ~self ~value
 
+		(* TODO refactor the following three functions to share common code *)
 		let set_xenstore_data ~__context ~self ~value =
 			info "VM.set_xenstore_data: VM = '%s'" (vm_uuid ~__context self);
 			Db.VM.set_xenstore_data ~__context ~self ~value;
-			let power_state = Db.VM.get_power_state ~__context ~self in
-			if power_state = `Running then
+            let power_state = Db.VM.get_power_state ~__context ~self in
+            if power_state = `Running then
 				let local_fn = Local.VM.set_xenstore_data ~self ~value in
 				forward_vm_op ~local_fn ~__context ~vm:self (fun session_id rpc -> Client.VM.set_xenstore_data rpc session_id self value)
 
+		let set_client_to_guest ~__context ~self ~value =
+			info "VM.set_client_to_guest: VM = '%s'" (vm_uuid ~__context self);
+			Db.VM.set_client_to_guest ~__context ~self ~value;
+            let power_state = Db.VM.get_power_state ~__context ~self in
+            if power_state = `Running then
+				let local_fn = Local.VM.set_client_to_guest ~self ~value in
+				forward_vm_op ~local_fn ~__context ~vm:self (fun session_id rpc -> Client.VM.set_client_to_guest rpc session_id self value)
+
+		let add_to_client_to_guest ~__context ~self ~key ~value =
+			info "VM.add_to_client_to_guest: VM = '%s'; params = ('%s','%s')" (vm_uuid ~__context self) key value;
+			let local_fn = Local.VM.add_to_client_to_guest ~self ~key ~value in
+			with_vm_operation ~__context ~self ~doc:"VM.add_to_client_to_guest" ~op:`changing_VCPUs_live
+				(fun () ->
+					forward_vm_op ~local_fn ~__context ~vm:self
+						(fun session_id rpc -> Client.VM.add_to_client_to_guest rpc session_id self key value))
+
+		let remove_from_client_to_guest ~__context ~self ~key =
+			info "VM.remove_from_client_to_guest: VM = '%s'; key = ('%s')" (vm_uuid ~__context self) key;
+			let local_fn = Local.VM.remove_from_client_to_guest ~self ~key in
+			with_vm_operation ~__context ~self ~doc:"VM.remove_from_client_to_guest" ~op:`changing_VCPUs_live
+				(fun () ->
+					forward_vm_op ~local_fn ~__context ~vm:self
+						(fun session_id rpc -> Client.VM.remove_from_client_to_guest rpc session_id self key))
+
+(*
+		let set_guest_to_client ~__context ~self ~value =
+			info "VM.set_guest_to_client: VM = '%s'" (vm_uuid ~__context self);
+			Db.VM.set_guest_to_client ~__context ~self ~value;
+            let power_state = Db.VM.get_power_state ~__context ~self in
+            if power_state = `Running then
+				let local_fn = Local.VM.set_guest_to_client ~self ~value in
+				forward_vm_op ~local_fn ~__context ~vm:self (fun session_id rpc -> Client.VM.set_guest_to_client rpc session_id self value)
+*)
 		let clean_shutdown ~__context ~vm =
 			info "VM.clean_shutdown: VM = '%s'" (vm_uuid ~__context vm);
 			let local_fn = Local.VM.clean_shutdown ~vm in

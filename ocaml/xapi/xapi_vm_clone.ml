@@ -322,6 +322,8 @@ let copy_vm_record ?(snapshot_info_record) ~__context ~vm ~disk_op ~new_name ~ne
 		~last_booted_record:all.Db_actions.vM_last_booted_record
 		~recommendations:all.Db_actions.vM_recommendations
 		~xenstore_data:all.Db_actions.vM_xenstore_data
+		~client_to_guest:all.Db_actions.vM_client_to_guest
+		~guest_to_client:all.Db_actions.vM_guest_to_client
 		~ha_restart_priority:all.Db_actions.vM_ha_restart_priority
 		~ha_always_run:false
 		~tags:all.Db_actions.vM_tags

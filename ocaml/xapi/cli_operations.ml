@@ -1609,7 +1609,9 @@ let vm_create printer rpc session_id params =
 		~vCPUs_params:[] ~vCPUs_max:1L ~vCPUs_at_startup:1L
 		~actions_after_shutdown:`destroy ~actions_after_reboot:`restart ~actions_after_crash:`destroy ~pV_bootloader:""
 		~pV_kernel:"" ~pV_ramdisk:"" ~pV_args:"" ~pV_bootloader_args:"" ~pV_legacy_args:"" ~hVM_boot_policy:""
-		~hVM_boot_params:[] ~hVM_shadow_multiplier:1. ~platform:[] ~pCI_bus:"" ~other_config:[] ~xenstore_data:[] ~recommendations:"" ~ha_always_run:false ~ha_restart_priority:""
+		~hVM_boot_params:[] ~hVM_shadow_multiplier:1. ~platform:[] ~pCI_bus:"" ~other_config:[] ~xenstore_data:[]
+		~client_to_guest:[]
+		~recommendations:"" ~ha_always_run:false ~ha_restart_priority:""
 		~tags:[] ~protection_policy:Ref.null ~is_snapshot_from_vmpp:false
 		~appliance:Ref.null
 		~start_delay:0L

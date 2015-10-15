@@ -81,6 +81,7 @@ let make __context rpc session_id srid (vms, vdis) =
 				~pV_bootloader_args:""
 				~pV_args:""
 				~pCI_bus:"" ~other_config:[] ~xenstore_data:[] ~recommendations:""
+				~client_to_guest:[]
 				~ha_always_run:false ~ha_restart_priority:"" ~tags:[]
 				~protection_policy:Ref.null ~is_snapshot_from_vmpp:false
 				~appliance:Ref.null

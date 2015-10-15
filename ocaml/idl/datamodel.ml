@@ -18,7 +18,7 @@ open Datamodel_types
 (* IMPORTANT: Please bump schema vsn if you change/add/remove a _field_.
               You do not have to bump vsn if you change/add/remove a message *)
 let schema_major_vsn = 5
-let schema_minor_vsn = 90
+let schema_minor_vsn = 91
 
 (* Historical schema versions just in case this is useful later *)
 let rio_schema_major_vsn = 5
@@ -66,8 +66,8 @@ let creedence_release_schema_minor_vsn = 72
 let cream_release_schema_major_vsn = 5
 let cream_release_schema_minor_vsn = 73
 
-let dundee_release_schema_major_vsn = 5
-let dundee_release_schema_minor_vsn = 90
+let dundee_release_schema_major_vsn = schema_major_vsn
+let dundee_release_schema_minor_vsn = schema_minor_vsn
 
 (* the schema vsn of the last release: used to determine whether we can upgrade or not.. *)
 let last_release_schema_major_vsn = cream_release_schema_major_vsn
@@ -2482,6 +2482,46 @@ let vm_xenprep_abort = call
 	~params:[Ref _vm, "self", "The VM"]
 	~doc_tags:[Windows]
 	~allowed_roles:_R_VM_OP
+	()
+
+let vm_set_client_to_guest = call
+	~name:"set_client_to_guest"
+	~lifecycle:[Published, rel_dundee, ""]
+	~doc:"When a client alters sets or alters the contents of this string-string map, the children of the XenStore node /local/domain/N/client_to_guest are made to match it, thus sending a signal to the guest VM. This is intended only for use by XenCenter to send signals to the Windows Guest Agent."
+	~params:[
+		Ref _vm, "self", "The VM";
+		Map(String, String), "value", "The map of key-value pairs";
+	]
+	~doc_tags:[Windows]
+	(* ~hide_from_docs:true *)
+	~allowed_roles:_R_VM_POWER_ADMIN
+	()
+
+let vm_add_to_client_to_guest = call
+	~name:"add_to_client_to_guest"
+	~lifecycle:[Published, rel_dundee, ""]
+	~doc:"When a client alters sets or alters the contents of this string-string map, the children of the XenStore node /local/domain/N/client_to_guest are made to match it, thus sending a signal to the guest VM. This is intended only for use by XenCenter to send signals to the Windows Guest Agent."
+	~params:[
+		Ref _vm, "self", "The VM";
+		String, "key", "The new key";
+		String, "value", "The value associated with the new key";
+	]
+	~doc_tags:[Windows]
+	(* ~hide_from_docs:true *)
+	~allowed_roles:_R_VM_POWER_ADMIN
+	()
+
+let vm_remove_from_client_to_guest = call
+	~name:"remove_from_client_to_guest"
+	~lifecycle:[Published, rel_dundee, ""]
+	~doc:"When a client alters sets or alters the contents of this string-string map, the children of the XenStore node /local/domain/N/client_to_guest are made to match it, thus sending a signal to the guest VM. This is intended only for use by XenCenter to send signals to the Windows Guest Agent."
+	~params:[
+		Ref _vm, "self", "The VM";
+		String, "key", "The key of the key-value pair to remove";
+	]
+	~doc_tags:[Windows]
+	(* ~hide_from_docs:true *)
+	~allowed_roles:_R_VM_POWER_ADMIN
 	()
 
 (* ------------------------------------------------------------------------------------------------------------
@@ -7218,6 +7258,9 @@ let vm =
 		vm_import;
 		vm_xenprep_start;
 		vm_xenprep_abort;
+		vm_set_client_to_guest;
+		vm_add_to_client_to_guest;
+		vm_remove_from_client_to_guest;
 		]
       ~contents:
       ([ uid _vm;
@@ -7295,6 +7338,8 @@ let vm =
 	field ~qualifier:StaticRO ~in_product_since:rel_clearwater ~default_value:(Some (VString "0:0")) ~ty:(String) "generation_id" "Generation ID of the VM";
 	field ~writer_roles:_R_VM_ADMIN ~qualifier:RW ~in_product_since:rel_cream ~default_value:(Some (VInt 0L)) ~ty:Int "hardware_platform_version" "The host virtual hardware platform version the VM can run on";
 	field ~qualifier:DynamicRO ~in_product_since:rel_dundee ~doc_tags:[Windows] ~default_value:(Some (VBool false)) ~ty:Bool "auto_update_drivers" "True if the Windows Update feature is enabled on the VM; false otherwise";
+	field ~effect:true ~qualifier:StaticRO ~in_product_since:rel_dundee ~doc_tags:[Windows] ~default_value:(Some (VMap [])) ~ty:(Map (String, String)) "client_to_guest" "Map used for a client of XenAPI to send signals to the VM guest agent through XenStore. Intended for XenCenter only.";
+	field ~qualifier:DynamicRO ~in_product_since:rel_dundee ~doc_tags:[Windows] ~default_value:(Some (VMap [])) ~ty:(Map (String, String)) "guest_to_client" "Map used for guest agent to send signals from VM through XenStore to a client of XenAPI";
     ])
 	()
 
