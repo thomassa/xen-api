@@ -1061,16 +1061,10 @@ let import ~__context ~url ~sr ~full_restore ~force =
 let query_services ~__context ~self =
 	raise (Api_errors.Server_error(Api_errors.not_implemented, [ "query_services" ]))
 
+(* Disabled for the time being, pending a decision on what form the feature will take *)
 let assert_can_set_auto_update_drivers ~__context ~self ~value =
-	Xapi_vm_lifecycle.assert_power_state_is ~__context ~self ~expected:`Halted;
-	let vm_gm = Db.VM.get_guest_metrics ~__context ~self in
-	let network_optimized = try Db.VM_guest_metrics.get_network_paths_optimized ~__context ~self:vm_gm with _ -> false in
-	let storage_optimized = try Db.VM_guest_metrics.get_storage_paths_optimized ~__context ~self:vm_gm with _ -> false in
-	if storage_optimized || network_optimized
-	then
-		raise (Api_errors.Server_error(Api_errors.vm_pv_drivers_in_use, [ Ref.string_of self ]))
+	raise (Api_errors.Server_error(Api_errors.not_implemented, [ "set_auto_update_drivers" ]))
 
+(* Disabled for the time being, pending a decision on what form the feature will take *)
 let set_auto_update_drivers ~__context ~self ~value=	
-	assert_can_set_auto_update_drivers ~__context ~self ~value;
-	Db.VM.set_auto_update_drivers ~__context ~self ~value
-
+	raise (Api_errors.Server_error(Api_errors.not_implemented, [ "set_auto_update_drivers" ]))
