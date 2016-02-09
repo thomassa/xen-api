@@ -27,6 +27,8 @@ type version =
       build_number: string;
       xapi_vsn_major: int;
       xapi_vsn_minor: int;
+      db_schema_vsn_major: int; (* 0 if missing *)
+      db_schema_vsn_minor: int; (* 0 if missing *)
       export_vsn: int; (* 0 if missing, indicates eg whether to expect sha1sums in the stream *)
     }
 
@@ -74,6 +76,8 @@ let this_version __context =
     build_number = Version.build_number ();
     xapi_vsn_major = Xapi_globs.version_major;
     xapi_vsn_minor = Xapi_globs.version_minor;
+    db_schema_vsn_major = Datamodel.schema_major_vsn;
+    db_schema_vsn_minor = Datamodel.schema_minor_vsn;
     export_vsn = Xapi_globs.export_vsn;
   }
 
@@ -99,6 +103,8 @@ let xmlrpc_of_version x =
       _build_number,    XMLRPC.To.string x.build_number;
       _xapi_major,      XMLRPC.To.string (string_of_int Xapi_globs.version_major);
       _xapi_minor,      XMLRPC.To.string (string_of_int Xapi_globs.version_minor);
+      _db_schema_vsn_major, XMLRPC.To.string (string_of_int Datamodel.schema_major_vsn);
+      _db_schema_vsn_minor, XMLRPC.To.string (string_of_int Datamodel.schema_minor_vsn);
       _export_vsn,      XMLRPC.To.string (string_of_int Xapi_globs.export_vsn);
     ]
 
@@ -106,6 +112,7 @@ exception Failure of string
 let version_of_xmlrpc x = 
   let kvpairs = XMLRPC.From.structure x in
   let find = find kvpairs "version data" in
+  let try_int k = (try int_of_string (XMLRPC.From.string (find k)) with _ -> 0) in
   { hostname        = XMLRPC.From.string (find _hostname);
     date            = XMLRPC.From.string (find _date);
     product_version = XMLRPC.From.string (find _product_version);
@@ -113,7 +120,9 @@ let version_of_xmlrpc x =
     build_number    = XMLRPC.From.string (find _build_number);
     xapi_vsn_major  = int_of_string (XMLRPC.From.string (find _xapi_major));
     xapi_vsn_minor  = int_of_string (XMLRPC.From.string (find _xapi_minor));
-    export_vsn      = try int_of_string (XMLRPC.From.string (find _export_vsn)) with _ -> 0;
+    db_schema_vsn_major = try_int _db_schema_vsn_major;
+    db_schema_vsn_minor = try_int _db_schema_vsn_minor;
+    export_vsn      = try_int _export_vsn;
   }
 
 let _version = "version"

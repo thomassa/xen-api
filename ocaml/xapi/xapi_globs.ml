@@ -120,6 +120,8 @@ let _api_vendor = "API_vendor"
 let _api_vendor_implementation = "API_vendor_implementation"
 let _xapi_major = "xapi_major"
 let _xapi_minor = "xapi_minor"
+let _db_schema_vsn_major = "db_schema_vsn_major"
+let _db_schema_vsn_minor = "db_schema_vsn_minor"
 let _export_vsn = "export_vsn"
 let _dbv = "dbv"
 
@@ -133,8 +135,9 @@ let default_platform_version = "0.0.0"
 (* Used to differentiate between 
    Rio beta2 (0) [no inline checksums, end-of-tar checksum table],
    Rio GA (1) [inline checksums, end-of-tar checksum table]
-   and Miami GA (2) [inline checksums, no end-of-tar checksum table] *)
-let export_vsn = 2
+   Miami GA (2) [inline checksums, no end-of-tar checksum table]
+   Dundee (3) [header includes datamodel schema version, major/minor ] *)
+let export_vsn = 3
 
 let software_version () =
 	(* In the case of XCP, all product_* fields will be blank. *)
