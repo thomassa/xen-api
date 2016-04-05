@@ -85,11 +85,14 @@ let set_forwarding_on_task ~__context ~host =
 		Some rt (* slave uses this task for progress/status etc. *)
 	end else None
 
-let check_live ~__context h =
+let is_live ~__context h =
 	(* assume that localhost is always live *)
-	if true
-		&& (Helpers.get_localhost ~__context <> h)
-		&& (not (Xapi_vm_helpers.is_host_live ~__context h))
+	false
+	|| (Helpers.get_localhost ~__context = h)
+	|| (Xapi_vm_helpers.is_host_live ~__context h)
+
+let check_live ~__context h =
+	if not (is_live ~__context h)
 	then raise (Api_errors.Server_error (Api_errors.host_offline, [Ref.string_of h]))
 
 let check_enabled ~__context h =
@@ -1988,9 +1991,12 @@ module Forward = functor(Local: Custom_actions.CUSTOM_ACTIONS) -> struct
 			in
 			let local_fn = Local.Host.set_ssl_legacy ~self ~value in
 			let fn () =
-				do_op_on ~local_fn ~__context ~host:self
+				if is_live ~__context self
+				then do_op_on ~local_fn ~__context ~host:self
 					(fun session_id rpc ->
-						Client.Host.set_ssl_legacy rpc session_id self value)
+						Client.Host.set_ssl_legacy rpc session_id self value
+					)
+				else Db.Host.set_ssl_legacy ~__context ~self ~value
 			in
 			tolerate_connection_loss fn success 30.
 
