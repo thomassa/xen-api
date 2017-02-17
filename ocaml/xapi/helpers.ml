@@ -92,9 +92,18 @@ let get_management_ip_addr ~__context =
 let get_localhost_uuid () =
   Xapi_inventory.lookup Xapi_inventory._installation_uuid
 
+let localhost = ref None
+
 let get_localhost ~__context : API.ref_host  =
-  let uuid = get_localhost_uuid () in
-  Db.Host.get_by_uuid ~__context ~uuid
+  let find_and_remember () =
+    let uuid = get_localhost_uuid () in
+    let hostref = Db.Host.get_by_uuid ~__context ~uuid in
+    localhost := Some hostref;
+    hostref
+  in
+  match !localhost with
+    | Some hostref -> hostref
+    | None -> find_and_remember ()
 
 (* Determine the gateway and DNS PIFs:
  * If one of the PIFs with IP has other_config:defaultroute=true, then

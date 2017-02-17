@@ -64,7 +64,8 @@ let create ~__context ~class_id ~class_name ~vendor_id ~vendor_name ~device_id
   debug "PCI %s, %s, %s created" pci_id vendor_name device_name;
   p
 
-let update_pcis ~__context ~host =
+let update_pcis ~__context =
+  let host = Helpers.get_localhost ~__context in
   let existing = List.filter_map
       (fun pref ->
          let prec = Db.PCI.get_record_internal ~__context ~self:pref in
