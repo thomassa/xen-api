@@ -5958,6 +5958,8 @@ let storage_operations =
           "vdi_clone", "Cloneing a VDI";
           "vdi_snapshot", "Snapshotting a VDI";
           "vdi_mirror", "Mirroring a VDI";
+          "vdi_enable_cbt", "Enabling changed block tracking for a VDI";
+          "vdi_disable_cbt", "Disabling changed block tracking for a VDI";
           "pbd_create", "Creating a PBD for this SR";
           "pbd_destroy", "Destroying one of this SR's PBDs"; ])
 
@@ -6280,6 +6282,8 @@ let vdi_operations =
           "update", "Refreshing the fields of the VDI";
           "force_unlock", "Forcibly unlocking the VDI";
           "generate_config", "Generating static configuration";
+          "enable_cbt", "Enabling changed block tracking for a VDI";
+          "disable_cbt", "Disabling changed block tracking for a VDI";
           "blocked", "Operations on this VDI are temporarily blocked";
         ])
 
