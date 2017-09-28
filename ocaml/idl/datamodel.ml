@@ -170,7 +170,8 @@ let _pvs_proxy = "PVS_proxy"
 let _pvs_cache_storage = "PVS_cache_storage"
 let _feature = "Feature"
 let _sdn_controller = "SDN_controller"
-
+let _vdi_nbd_info = "VDI_NBD_info"
+let _nbd_server_info = "NBD_server_info"
 
 (** All the various static role names *)
 
@@ -8977,6 +8978,40 @@ let message =
       field ~qualifier:DynamicRO ~ty:DateTime "timestamp" "The time at which the message was created";
       field ~qualifier:DynamicRO ~ty:String "body" "The body of the message"; ]
     ()
+
+let nbd_server_info =
+  create_obj
+    ~in_db:false
+    ~persist:PersistNothing
+    ~gen_constructor_destructor:false
+    ~in_product_since:rel_inverness ~in_oss_since:None
+    ~name:_nbd_server_info
+    ~descr:"Details for connecting to an Network Block Device server"
+    ~gen_events:false
+    ~messages:[]
+    ~contents:
+    [ uid _nbd_server_info;
+      field ~qualifier:StaticRO ~ty:String "address" "An address on which the server can be reached; this can be IPv4, IPv6, or a DNS name.";
+      field ~qualifier:StaticRO ~ty:Int "port" "The TCP port";
+      field ~qualifier:StaticRO ~ty:String "cert" "The TLS certificate of the server";
+      field ~qualifier:StaticRO ~ty:String "subject" "For convenience, this redundant field holds a subject of the certificate.";
+    ] ()
+
+let vdi_nbd_info =
+  create_obj
+    ~in_db:false
+    ~persist:PersistNothing
+    ~gen_constructor_destructor:false
+    ~in_product_since:rel_inverness ~in_oss_since:None
+    ~name:_vdi_nbd_info
+    ~descr:"Details for connecting to a VDI using the Network Block Device protocol"
+    ~gen_events:false
+    ~messages:[]
+    ~contents:
+    [ uid _vdi_nbd_info;
+      field ~qualifier:StaticRO ~ty:String "exportname" "The exportname to request over NBD; clients should regard this as an opaque string or token.";
+      field ~qualifier:StaticRO ~ty: (Set (Record _nbd_server_info)) "server_details" "A set of connection details for NBD servers that offer the VDI; a server with multiple addresses may have multiple entries in this set. The set will be empty if no networks have been specified as for use with NBD.";
+    ] ()
 
 let secret =
   let introduce = call
