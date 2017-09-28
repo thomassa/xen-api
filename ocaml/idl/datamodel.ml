@@ -18,7 +18,7 @@ open Datamodel_types
 (* IMPORTANT: Please bump schema vsn if you change/add/remove a _field_.
               You do not have to bump vsn if you change/add/remove a message *)
 let schema_major_vsn = 5
-let schema_minor_vsn = 132
+let schema_minor_vsn = 133
 
 (* Historical schema versions just in case this is useful later *)
 let rio_schema_major_vsn = 5
@@ -88,7 +88,7 @@ let falcon_release_schema_major_vsn = 5
 let falcon_release_schema_minor_vsn = 120
 
 let inverness_release_schema_major_vsn = 5
-let inverness_release_schema_minor_vsn = 131
+let inverness_release_schema_minor_vsn = 133
 
 (* List of tech-preview releases. Fields in these releases are not guaranteed to be retained when
  * upgrading to a full release. *)
@@ -6630,14 +6630,57 @@ let vdi_list_changed_blocks = call
     ~allowed_roles:_R_VM_OP
     ()
 
+let nbd_server_info =
+    let lifecycle = [Published, rel_inverness, ""] in
+    create_obj
+      ~in_db:false
+      ~persist:PersistNothing
+      ~gen_constructor_destructor:false
+      ~lifecycle
+      ~in_oss_since:None
+      ~name:_nbd_server_info
+      ~descr:"Details for connecting to an Network Block Device server"
+      ~gen_events:false
+      ~messages:[]
+      ~doccomments:[]
+      ~messages_default_allowed_roles:None (* No messages, so no roles allowed to use them *)
+      ~contents:
+      [ uid _nbd_server_info;
+        field ~qualifier:DynamicRO ~lifecycle ~ty:String "address" "An address on which the server can be reached; this can be IPv4, IPv6, or a DNS name.";
+        field ~qualifier:DynamicRO ~lifecycle ~ty:Int "port" "The TCP port";
+        field ~qualifier:DynamicRO ~lifecycle ~ty:String "cert" "The TLS certificate of the server";
+        field ~qualifier:DynamicRO ~lifecycle ~ty:String "subject" "For convenience, this redundant field holds a subject of the certificate.";
+      ] ()
+
+let vdi_nbd_info =
+    let lifecycle = [Published, rel_inverness, ""] in
+    create_obj
+      ~in_db:false
+      ~persist:PersistNothing
+      ~gen_constructor_destructor:false
+      ~lifecycle
+      ~in_oss_since:None
+      ~name:_vdi_nbd_info
+      ~descr:"Details for connecting to a VDI using the Network Block Device protocol"
+      ~gen_events:false
+      ~messages:[]
+      ~doccomments:[]
+      ~messages_default_allowed_roles:None (* No messages, so no roles allowed to use them *)
+      ~contents:
+      [ uid _vdi_nbd_info ~lifecycle;
+        field ~qualifier:DynamicRO ~lifecycle ~ty:String "exportname" "The exportname to request over NBD. This holds details including an authentication token, so it must be protected appropriately. Clients should regard the exportname as an opaque string or token.";
+        field ~qualifier:DynamicRO ~lifecycle ~ty: (Set (Record _nbd_server_info)) "server_details" "A set of connection details for NBD servers that offer the VDI; a server with multiple addresses may have multiple entries in this set. The set will be empty if no networks have been specified as for use with NBD.";
+      ] ()
+
 let vdi_get_nbd_info = call
-    ~name:"get_nbd_info"
+     ~name:"get_nbd_info"
     ~in_oss_since:None
     ~in_product_since:rel_inverness
-    ~params:[Ref _vdi, "self", "The VDI to access via NBD."]
+    ~params:[Ref _vdi, "self", "The VDI to access via Network Block Device protocol"]
     ~errs: [Api_errors.vdi_incompatible_type]
-    ~result:(Set String, "The list of URIs.")
-    ~doc:"Get a list of URIs specifying how to access this VDI via the NBD server of XenServer. A URI will be returned for each PIF of each host that is connected to the VDI's SR. An empty list is returned in case no network has a PIF on a host with access to the relevant SR. To access the given VDI, any of the returned URIs can be passed as the export name to the nbd-server running at the IP address and port specified by that URI."
+    ~result:(Record _vdi_nbd_info, "The details necessary for connecting to the VDI over NBD. This includes an authentication token, so must be treated as sensitive material.")
+(*  ~result:(Set (String), "A list of URIs") *)
+    ~doc:"Get details specifying how to access this VDI via a Network Block Device server. The return type contains an exportname to request once the NBD connection is established, and connection details (an nbd_server_info object) for each of a set of NBD server addresses on which the VDI is available. An empty list is returned if there is no network that has a PIF on a host with access to the relevant SR, or if no such network has been configured to allow NBD. To access the given VDI, any of the nbd_server_info objects can be used to make a connection to a server, and then the VDI will be available by requesting the exportname."
     ~allowed_roles:_R_VM_ADMIN
     ()
 
@@ -8979,40 +9022,6 @@ let message =
       field ~qualifier:DynamicRO ~ty:String "body" "The body of the message"; ]
     ()
 
-let nbd_server_info =
-  create_obj
-    ~in_db:false
-    ~persist:PersistNothing
-    ~gen_constructor_destructor:false
-    ~in_product_since:rel_inverness ~in_oss_since:None
-    ~name:_nbd_server_info
-    ~descr:"Details for connecting to an Network Block Device server"
-    ~gen_events:false
-    ~messages:[]
-    ~contents:
-    [ uid _nbd_server_info;
-      field ~qualifier:StaticRO ~ty:String "address" "An address on which the server can be reached; this can be IPv4, IPv6, or a DNS name.";
-      field ~qualifier:StaticRO ~ty:Int "port" "The TCP port";
-      field ~qualifier:StaticRO ~ty:String "cert" "The TLS certificate of the server";
-      field ~qualifier:StaticRO ~ty:String "subject" "For convenience, this redundant field holds a subject of the certificate.";
-    ] ()
-
-let vdi_nbd_info =
-  create_obj
-    ~in_db:false
-    ~persist:PersistNothing
-    ~gen_constructor_destructor:false
-    ~in_product_since:rel_inverness ~in_oss_since:None
-    ~name:_vdi_nbd_info
-    ~descr:"Details for connecting to a VDI using the Network Block Device protocol"
-    ~gen_events:false
-    ~messages:[]
-    ~contents:
-    [ uid _vdi_nbd_info;
-      field ~qualifier:StaticRO ~ty:String "exportname" "The exportname to request over NBD; clients should regard this as an opaque string or token.";
-      field ~qualifier:StaticRO ~ty: (Set (Record _nbd_server_info)) "server_details" "A set of connection details for NBD servers that offer the VDI; a server with multiple addresses may have multiple entries in this set. The set will be empty if no networks have been specified as for use with NBD.";
-    ] ()
-
 let secret =
   let introduce = call
       ~name:"introduce"
@@ -9924,6 +9933,8 @@ let all_system =
     pvs_cache_storage;
     feature;
     sdn_controller;
+    nbd_server_info;
+    vdi_nbd_info;
   ]
 
 (** These are the pairs of (object, field) which are bound together in the database schema *)
@@ -10102,6 +10113,8 @@ let expose_get_all_messages_for = [
   _pvs_cache_storage;
   _feature;
   _sdn_controller;
+  (* _vdi_nbd_info must NOT be included here *)
+  (* _nbd_server_info must NOT be included here *)
 ]
 
 let no_task_id_for = [ _task; (* _alert; *) _event ]
