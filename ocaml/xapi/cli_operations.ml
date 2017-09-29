@@ -1585,6 +1585,18 @@ let pbd_unplug printer rpc session_id params =
   let pbd = Client.PBD.get_by_uuid ~rpc ~session_id ~uuid:(List.assoc "uuid" params) in
   Client.PBD.unplug rpc session_id pbd
 
+let network_add_purpose printer rpc session_id params =
+  let network_uuid = List.assoc "uuid" params in
+  let network = Client.Network.get_by_uuid rpc session_id network_uuid in
+  let purpose = Record_util.string_to_network_purpose (List.assoc "network-purpose" params) in
+  Client.Network.add_purpose rpc session_id network purpose
+
+let network_remove_purpose printer rpc session_id params =
+  let network_uuid = List.assoc "uuid" params in
+  let network = Client.Network.get_by_uuid rpc session_id network_uuid in
+  let porpoise = List.assoc "network-purpose" params |> Record_util.string_to_network_purpose in
+  Client.Network.remove_purpose rpc session_id network porpoise
+
 let vif_create printer rpc session_id params =
   let device = List.assoc "device" params in
   let network_uuid = List.assoc "network-uuid" params in

@@ -2066,6 +2066,22 @@ add a mapping of 'path' -> '/tmp', the command line should contain the argument 
       implementation=No_fd Cli_operations.net_attach;
       flags=[Hidden];
     };
+    "network-add-purpose",
+    {
+      reqd=["uuid"; "network-purpose"];
+      optn=[];
+      help="Assign a purpose to a network.";
+      implementation=No_fd Cli_operations.network_add_purpose;
+      flags=[];
+    };
+    "network-remove-purpose",
+    {
+      reqd=["uuid"; "network-purpose"];
+      optn=[];
+      help="Remove a purpose from a network.";
+      implementation=No_fd Cli_operations.network_remove_purpose;
+      flags=[];
+    };
     "vif-create",
     {
       reqd=["device";"network-uuid";"vm-uuid"];

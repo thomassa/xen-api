@@ -245,6 +245,12 @@ _xe()
                 return 0
                 ;;
 
+            network-purpose) # for network.add_purpose, remove_purpose
+                IFS=$'\n,'
+                set_completions 'NBD,Insecure_NBD,Management,Storage,Guest' "$value" # Exclude Host_Internal_Management,Unmanaged
+                return 0
+                ;;
+
             pif-uuids) # bond-create
                 val=$(final_comma_separated_param "$value")
                 pifs=`${xe} pif-list --minimal 2>/dev/null`
