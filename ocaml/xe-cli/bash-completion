@@ -246,11 +246,11 @@ _xe()
                 ;;
 
             purpose) # for network.add_purpose, remove_purpose
-                case "${OLDSTYLE_WORDS[1]}" in
-                    network-add-purpose)
-                    network-remove-purpose)
-                        IFS=$'\n,'
-                        set_completions 'NBD,Insecure_NBD,Management,Storage,Guest' "$value" # Exclude Host_Internal_Management,Unmanaged
+                IFS=$'\n,'
+                fst=`echo ${OLDSTYLE_WORDS[1]} | cut -d- -f1`
+                case "${fst}" in
+                    network)
+                        set_completions 'nbd,insecure_nbd' "$value" # Exclude any meant for internal setting only
                         return 0;;
                     *)
                         return 1
