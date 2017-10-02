@@ -2068,7 +2068,7 @@ add a mapping of 'path' -> '/tmp', the command line should contain the argument 
     };
     "network-add-purpose",
     {
-      reqd=["uuid"; "network-purpose"];
+      reqd=["uuid"; "purpose"];
       optn=[];
       help="Assign a purpose to a network.";
       implementation=No_fd Cli_operations.network_add_purpose;
@@ -2076,7 +2076,7 @@ add a mapping of 'path' -> '/tmp', the command line should contain the argument 
     };
     "network-remove-purpose",
     {
-      reqd=["uuid"; "network-purpose"];
+      reqd=["uuid"; "purpose"];
       optn=[];
       help="Remove a purpose from a network.";
       implementation=No_fd Cli_operations.network_remove_purpose;

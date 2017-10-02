@@ -245,10 +245,16 @@ _xe()
                 return 0
                 ;;
 
-            network-purpose) # for network.add_purpose, remove_purpose
-                IFS=$'\n,'
-                set_completions 'NBD,Insecure_NBD,Management,Storage,Guest' "$value" # Exclude Host_Internal_Management,Unmanaged
-                return 0
+            purpose) # for network.add_purpose, remove_purpose
+                case "${OLDSTYLE_WORDS[1]}" in
+                    network-add-purpose)
+                    network-remove-purpose)
+                        IFS=$'\n,'
+                        set_completions 'NBD,Insecure_NBD,Management,Storage,Guest' "$value" # Exclude Host_Internal_Management,Unmanaged
+                        return 0;;
+                    *)
+                        return 1
+                esac
                 ;;
 
             pif-uuids) # bond-create
